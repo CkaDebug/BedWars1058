@@ -37,7 +37,7 @@ import com.andrei1058.bedwars.arena.Arena;
 import com.andrei1058.bedwars.arena.OreGenerator;
 import com.andrei1058.bedwars.configuration.Sounds;
 import com.andrei1058.bedwars.shop.ShopCache;
-import com.andrei1058.bedwars.support.paper.PaperSupport;
+import com.andrei1058.bedwars.support.paper.TeleportManager;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
@@ -97,6 +97,7 @@ public class BedWarsTeam implements ITeam {
     // Invulnerability at re-spawn
     // Fall invulnerability when teammates respawn
     public static HashMap<UUID, Long> reSpawnInvulnerability = new HashMap<>();
+    private UUID identity;
 
     public BedWarsTeam(String name, TeamColor color, Location spawn, Location bed, Location shop, Location teamUpgrades, Arena arena) {
         if (arena == null) return;
@@ -114,6 +115,7 @@ public class BedWarsTeam implements ITeam {
         if (drops != null) {
             setKillDropsLocation(drops);
         }
+        this.identity = UUID.randomUUID();
     }
 
     public int getSize() {
@@ -142,7 +144,7 @@ public class BedWarsTeam implements ITeam {
      */
     public void firstSpawn(Player p) {
         if (p == null) return;
-        PaperSupport.teleportC(p, spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        TeleportManager.teleportC(p, spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
         p.setGameMode(GameMode.SURVIVAL);
         p.setCanPickupItems(true);
         nms.setCollide(p, getArena(), true);
@@ -163,12 +165,12 @@ public class BedWarsTeam implements ITeam {
             nms.spawnShop(getArena().getConfig().getArenaLoc("Team." + getName() + ".Shop"), (getArena().getMaxInTeam() > 1 ? Messages.NPC_NAME_TEAM_SHOP : Messages.NPC_NAME_SOLO_SHOP), getArena().getPlayers(), getArena());
         }, 20L);
 
-        Cuboid c1 = new Cuboid(getArena().getConfig().getArenaLoc("Team." + getName() + ".Upgrade"), 1, true);
+        Cuboid c1 = new Cuboid(getArena().getConfig().getArenaLoc("Team." + getName() + ".Upgrade"), getArena().getConfig().getInt(ConfigPath.ARENA_UPGRADES_PROTECTION), true);
         c1.setMinY(c1.getMinY() - 1);
         c1.setMaxY(c1.getMaxY() + 4);
         getArena().getRegionsList().add(c1);
 
-        Cuboid c2 = new Cuboid(getArena().getConfig().getArenaLoc("Team." + getName() + ".Shop"), 1, true);
+        Cuboid c2 = new Cuboid(getArena().getConfig().getArenaLoc("Team." + getName() + ".Shop"), getArena().getConfig().getInt(ConfigPath.ARENA_SHOP_PROTECTION), true);
         c2.setMinY(c2.getMinY() - 1);
         c2.setMaxY(c2.getMaxY() + 4);
         getArena().getRegionsList().add(c2);
@@ -340,7 +342,7 @@ public class BedWarsTeam implements ITeam {
         } else {
             reSpawnInvulnerability.put(p.getUniqueId(), System.currentTimeMillis() + config.getInt(ConfigPath.GENERAL_CONFIGURATION_RE_SPAWN_INVULNERABILITY));
         }
-        PaperSupport.teleportC(p, getSpawn(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+        TeleportManager.teleportC(p, getSpawn(), PlayerTeleportEvent.TeleportCause.PLUGIN);
         p.setVelocity(new Vector(0, 0, 0));
         p.removePotionEffect(PotionEffectType.INVISIBILITY);
         nms.setCollide(p, arena, true);
@@ -478,6 +480,11 @@ public class BedWarsTeam implements ITeam {
         if (p.getInventory().getLeggings() == null)
             p.getInventory().setLeggings(createArmor(Material.LEATHER_LEGGINGS));
         if (p.getInventory().getBoots() == null) p.getInventory().setBoots(createArmor(Material.LEATHER_BOOTS));
+    }
+
+    @Override
+    public UUID getIdentity() {
+        return identity;
     }
 
     /**

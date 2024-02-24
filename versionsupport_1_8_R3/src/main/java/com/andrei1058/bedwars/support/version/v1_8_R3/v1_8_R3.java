@@ -49,7 +49,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
@@ -61,6 +60,7 @@ import java.util.logging.Level;
 
 import static com.andrei1058.bedwars.api.language.Language.getMsg;
 
+@Deprecated(forRemoval = true)
 @SuppressWarnings("unused")
 public class v1_8_R3 extends VersionSupport {
 
